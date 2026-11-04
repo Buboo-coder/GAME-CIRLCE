@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#a5f3fc">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
 <title>วงล้อสุ่มน่ารัก</title>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -78,7 +81,7 @@ input[type=checkbox]:checked::after{left:21px}
 <div class="box" id="box"><div class="glow"></div><div class="fx" id="fx"></div><canvas id="wheel" width="640" height="640"></canvas><div class="ptr"></div><button class="hub" id="hub" aria-label="เปลี่ยนสีไฟ"><span class="dot" id="dot"></span></button></div>
 <div style="text-align:center"><button class="spin" id="spin">🎲 หมุนวงล้อ!</button></div>
 <div class="card" id="res">กดปุ่มหมุนเพื่อเริ่มเกม 🎉</div>
-<div class="chips" id="hist"></div>
+
 <div class="stat" id="stat"></div>
 </main>
 
@@ -108,7 +111,7 @@ const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'
 const COL=[[255,0,0],[255,128,0],[255,255,0],[128,255,0],[0,255,0],[0,255,128],[0,255,255],[0,128,255],[0,0,255],[128,0,255],[255,0,255],[255,0,128]];
 const PAL=['#0284c7','#06b6d4','#0f766e','#3b82f6','#fb7185','#14b8a6','#1d4ed8','#f59e0b'];
 const TPL={'Alcohol':['🍺 เบียร์','🍷 ไวน์','🥃 วิสกี้','🍸 ค็อกเทล','🍹 มาร์การิต้า','💧 น้ำเปล่า'],'กินอะไรดี':['🍜 ก๋วยเตี๋ยว','🍛 ข้าวแกง','🍕 พิซซ่า','🍣 ซูชิ','🍗 ไก่ทอด','🥗 สลัด'],'ใครจ่าย':['เพื่อนคนที่ 1','เพื่อนคนที่ 2','เพื่อนคนที่ 3','เพื่อนคนที่ 4'],'ทำโทษ':['🕺 เต้น 10 วิ','🎤 ร้องเพลง','🥤 เลี้ยงน้ำ','🤪 ทำหน้าตลก','💪 วิดพื้น 5 ที','😇 รอดตัว']};
-let all=TPL['Alcohol'].slice(),S={snd:1,vib:1,mode:0,auto:1,stat:1,resb:1},ST={},hist=[],removed=new Set(),act=[],cur=0,busy=0,ci=9,src='tap',L1=null,L2=null,autoT,ht,hx,hy,taps=0,lastTap=0;
+let all=TPL['Alcohol'].slice(),S={snd:1,vib:1,mode:0,a2:0,stat:1,resb:1},ST={},hist=[],removed=new Set(),act=[],cur=0,busy=0,ci=9,src='tap',L1=null,L2=null,autoT,ht,hx,hy,taps=0,lastTap=0;
 try{const d=JSON.parse(localStorage.getItem('wv1'));if(d){if(d.all&&d.all.length>1)all=d.all;Object.assign(S,d.S);hist=d.hist||[];ST=d.ST||{}}}catch(e){}
 const save=()=>{try{localStorage.setItem('wv1',JSON.stringify({all,S,hist,ST}))}catch(e){}};
 const buzz=p=>{if(S.vib&&navigator.vibrate)navigator.vibrate(p)};
@@ -123,9 +126,9 @@ function glow(){{const st=document.documentElement.style,c=COL[ci];st.setPropert
 function mark(ai){const k=act.indexOf(ai);if(k<0)return;const a=((k+.5)*360/act.length+cur)*Math.PI/180,m=document.createElement('i');m.className='lk';m.textContent='🔒';m.style.left=50+40*Math.sin(a)+'%';m.style.top=50-40*Math.cos(a)+'%';box.appendChild(m);setTimeout(()=>m.remove(),2000)}
 function lockHold(ai){if(src==='tap'){if(L1&&L1.by==='panel')return;if(L1&&L1.slot===ai){L1=null;return}L1={by:'hold',slot:ai}}else L2=ai;mark(ai)}
 function auto(on){clearInterval(autoT);if(on)autoT=setInterval(()=>{ci=(ci+1)%12;src='auto';glow()},3000)}
-function show(v){['main','edit','set'].forEach(x=>$('#v-'+x).hidden=x!==v);auto(v==='set'&&S.auto);if(v==='edit')re();scrollTo(0,0)}
+function show(v){['main','edit','set'].forEach(x=>$('#v-'+x).hidden=x!==v);if(v==='edit')re();scrollTo(0,0)}
 const free=()=>{busy=0;$('#spin').disabled=false};
-const rh=()=>$('#hist').innerHTML=hist.map(h=>'<span class="chip">'+esc(h)+'</span>').join('');
+const rh=()=>{};
 const snd=new Audio('spinner-sound.mp3');snd.preload='auto';snd.volume=.8;
 function fade(){let v=.8;const t=setInterval(()=>{v-=.12;if(v<=0){clearInterval(t);snd.pause();snd.volume=.8}else snd.volume=v},70)}
 function fx(on){const f=$('#fx');f.innerHTML='';box.classList.toggle('spinning',!!on);if(!on)return;let h='';for(let i=0;i<3;i++)h+='<i class="rp" style="animation-delay:'+i*1.1+'s"></i>';for(let i=0;i<16;i++)h+='<b class="bub" style="left:'+Math.random()*100+'%;width:'+(6+Math.random()*10)+'px;animation-duration:'+(2+Math.random()*2.5)+'s;animation-delay:'+Math.random()*2+'s"></b>';f.innerHTML=h}
@@ -141,16 +144,16 @@ function done(k){const ai=act[k],n=all[ai];$('#res').textContent='🎉 ผลล
 if(S.mode){setTimeout(()=>{removed.add(ai);if(all.length-removed.size<2){removed.clear();$('#res').textContent='ครบทุกช่องแล้ว นำกลับมาใหม่ทั้งหมด'}rebuild();free()},1500)}else free()}
 $('#spin').onclick=spin;
 
-$('#hub').onclick=()=>{ci=(ci+1)%12;src='tap';glow();buzz(rgb()?[15,60,15]:10)};
+$('#hub').onclick=()=>{if(S.a2)return;ci=(ci+1)%12;glow();buzz(rgb()?[15,60,15]:10)};
 
 box.addEventListener('contextmenu',e=>e.preventDefault());
-box.addEventListener('pointerdown',e=>{if(busy||(src==='auto'&&!rgb()))return;const r=box.getBoundingClientRect(),R=r.width/2,dx=e.clientX-r.left-R,dy=e.clientY-r.top-R,d=Math.hypot(dx,dy);if(d<R*.2||d>R)return;
+box.addEventListener('pointerdown',e=>{if(busy||!S.a2||!rgb())return;const r=box.getBoundingClientRect(),R=r.width/2,dx=e.clientX-r.left-R,dy=e.clientY-r.top-R,d=Math.hypot(dx,dy);if(d<R*.2||d>R)return;
 hx=e.clientX;hy=e.clientY;const ph=(Math.atan2(dx,-dy)*180/Math.PI+360)%360,th=((ph-cur)%360+360)%360,k=Math.floor(th/(360/act.length));
-clearTimeout(ht);ht=setTimeout(()=>{ht=0;lockHold(act[k])},src==='tap'?6000:2000)});
+clearTimeout(ht);ht=setTimeout(()=>{ht=0;lockHold(act[k])},2000)});
 box.addEventListener('pointermove',e=>{if(ht&&Math.hypot(e.clientX-hx,e.clientY-hy)>14){clearTimeout(ht);ht=0}});
 ['pointerup','pointercancel','pointerleave'].forEach(t=>box.addEventListener(t,()=>{clearTimeout(ht);ht=0}));
 
-$('#title').onclick=()=>{const t=Date.now();taps=t-lastTap<1500?taps+1:1;lastTap=t;if(taps>=10){taps=0;if(src==='tap'&&!busy&&!(L1&&L1.by==='hold'))panel()}};
+$('#title').onclick=()=>{const t=Date.now();taps=t-lastTap<1500?taps+1:1;lastTap=t;if(taps>=10){taps=0;if(!S.a2&&!busy)panel()}};
 function panel(){$('#pl').innerHTML=act.map(i=>'<button class="chip" data-p="'+i+'">'+esc(all[i])+'</button>').join('')+'<button class="chip" data-p="-1">ปกติ</button>';$('#pn').hidden=false}
 $('#pl').onclick=e=>{const v=e.target.dataset.p;if(v==null)return;$('#pn').hidden=true;if(+v<0){if(L1&&L1.by==='panel')L1=null}else{L1={by:'panel',slot:+v};mark(+v)}};
 $('#pn').onclick=e=>{if(e.target.id==='pn')e.currentTarget.hidden=true};
@@ -172,10 +175,12 @@ $('#strip').innerHTML=COL.map(c=>'<i style="background:rgb('+c+')"></i>').join('
 
 function rs(){const e=$('#stat'),ks=Object.keys(ST).sort((a,b)=>ST[b]-ST[a]),mx=Math.max(1,...ks.map(k=>ST[k]));e.hidden=!S.stat;e.innerHTML='<b>สถิติการออก</b>'+(ks.length?ks.map(k=>'<div class="sr"><span>'+esc(k)+'</span><span class="sb"><u style="width:'+ST[k]/mx*100+'%"></u></span><em>'+ST[k]+'</em></div>').join(''):'<div style="color:#64748b;margin-top:4px">ยังไม่มีข้อมูล</div>')}
 const rb=()=>$('#res').hidden=!S.resb;
-[['tAuto','auto'],['tStat','stat'],['tRes','resb']].forEach(([i,k])=>{const e=$('#'+i);e.checked=!!S[k];e.onchange=()=>{S[k]=+e.checked;save();if(k==='auto')auto(S.auto);rs();rb()}});
+function mode(){src=S.a2?'auto':'tap';L1=L2=null;auto(S.a2)}
+[['tAuto','a2'],['tStat','stat'],['tRes','resb']].forEach(([i,k])=>{const e=$('#'+i);e.checked=!!S[k];e.onchange=()=>{S[k]=+e.checked;save();if(k==='a2')mode();rs();rb()}});
 $('#clr').onclick=()=>{ST={};save();rs()};
-document.addEventListener('visibilitychange',()=>{if(document.hidden){ci=9;src='tap';L1=L2=null;glow()}});
-glow();rm();rh();rs();rb();rebuild();if(document.fonts)document.fonts.ready.then(draw);
+document.addEventListener('visibilitychange',()=>{if(document.hidden){ci=9;mode();glow()}});
+glow();rm();rh();rs();rb();mode();rebuild();if(document.fonts)document.fonts.ready.then(draw);
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
