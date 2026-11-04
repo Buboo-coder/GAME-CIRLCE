@@ -85,6 +85,9 @@ input[type=checkbox]:checked::after{left:21px}
 @keyframes jf{0%,100%{transform:translateY(0)}50%{transform:translateY(-22px)}}
 @keyframes wv{to{transform:translateX(-50%)}}
 @media(prefers-reduced-motion:reduce){.fs,.jf,.wv,.shine{animation:none}}
+#fw{position:relative;width:100%;aspect-ratio:1;border-radius:50%}
+#fw.fl{animation:fl 1.2s ease-in-out}
+@keyframes fl{0%{transform:perspective(800px) rotateX(0)}100%{transform:perspective(800px) rotateX(360deg)}}
 </style>
 </head>
 <body>
@@ -94,7 +97,7 @@ input[type=checkbox]:checked::after{left:21px}
 <h1 id="title">🌊 วงล้อสุ่มน่ารัก</h1>
 <p class="sub">หมุนวงล้อและรอผลลัพธ์ที่น่าตื่นเต้น!</p>
 <div class="chips" id="modes"><button class="chip" data-m="0">สุ่มปกติ</button><button class="chip" data-m="1">ตัดออกเมื่อถูกสุ่ม</button></div>
-<div class="box" id="box"><div class="glow"></div><div class="fx" id="fx"></div><canvas id="wheel" width="640" height="640"></canvas><div class="shine"></div><div class="ptr"></div><button class="hub" id="hub" aria-label="เปลี่ยนสีไฟ"><span class="dot" id="dot"></span></button></div>
+<div class="box" id="box"><div class="glow"></div><div class="fx" id="fx"></div><div id="fw"><canvas id="wheel" width="640" height="640"></canvas></div><div class="shine"></div><div class="ptr"></div><button class="hub" id="hub" aria-label="เปลี่ยนสีไฟ"><span class="dot" id="dot"></span></button></div>
 <div style="text-align:center"><button class="spin" id="spin">🎲 หมุนวงล้อ!</button></div>
 <div class="card" id="res">กดปุ่มหมุนเพื่อเริ่มเกม 🎉</div>
 
@@ -127,7 +130,7 @@ const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'
 const COL=[[255,0,0],[255,128,0],[255,255,0],[128,255,0],[0,255,0],[0,255,128],[0,255,255],[0,128,255],[0,0,255],[128,0,255],[255,0,255],[255,0,128]];
 const PAL=['#0284c7','#06b6d4','#0f766e','#3b82f6','#fb7185','#14b8a6','#1d4ed8','#f59e0b'];
 const TPL={'Alcohol':['🍺 เบียร์','🍷 ไวน์','🥃 วิสกี้','🍸 ค็อกเทล','🍹 มาร์การิต้า','💧 น้ำเปล่า'],'กินอะไรดี':['🍜 ก๋วยเตี๋ยว','🍛 ข้าวแกง','🍕 พิซซ่า','🍣 ซูชิ','🍗 ไก่ทอด','🥗 สลัด'],'ใครจ่าย':['เพื่อนคนที่ 1','เพื่อนคนที่ 2','เพื่อนคนที่ 3','เพื่อนคนที่ 4'],'ทำโทษ':['🕺 เต้น 10 วิ','🎤 ร้องเพลง','🥤 เลี้ยงน้ำ','🤪 ทำหน้าตลก','💪 วิดพื้น 5 ที','😇 รอดตัว']};
-let all=TPL['Alcohol'].slice(),S={snd:1,vib:1,mode:0,a2:0,stat:1,resb:1},ST={},hist=[],removed=new Set(),act=[],cur=0,busy=0,ci=9,src='tap',L1=null,L2=null,autoT,ht,hx,hy,tp=null,taps=0,lastTap=0;
+let all=TPL['Alcohol'].slice(),S={snd:1,vib:1,mode:0,a2:0,stat:1,resb:1},ST={},hist=[],removed=new Set(),act=[],cur=0,busy=0,ci=9,src='tap',L1=null,L2=null,autoT,ht,hx,hy,tp=null,lastSt=-1,taps=0,lastTap=0;
 try{const d=JSON.parse(localStorage.getItem('wv1'));if(d){if(d.all&&d.all.length>1)all=d.all;Object.assign(S,d.S);hist=d.hist||[];ST=d.ST||{}}}catch(e){}
 const save=()=>{try{localStorage.setItem('wv1',JSON.stringify({all,S,hist,ST}))}catch(e){}};
 const buzz=p=>{if(S.vib&&navigator.vibrate)navigator.vibrate(p)};
@@ -152,10 +155,13 @@ function fx(on){const f=$('#fx');f.innerHTML='';box.classList.toggle('spinning',
 function spin(){if(busy||!act.length)return;busy=1;$('#spin').disabled=true;$('#res').textContent='กำลังหมุน...';fx(1);if(S.snd){snd.currentTime=0;snd.volume=.8;snd.play().catch(()=>{})}
 let k=Math.floor(Math.random()*act.length);
 if(src==='auto'||rgb()){const f=src==='tap'?(L1?L1.slot:null):L2;if(f!=null){const j=act.indexOf(f);if(j>=0)k=j;if(src==='tap')L1=null;else L2=null}}
-const s=360/act.length,th=k*s+s*(.14+Math.random()*.72);
-cur=Math.ceil(cur/360)*360+360*(5+Math.floor(Math.random()*3))+360-th;
-cv.style.transition='transform 5s cubic-bezier(.12,.62,.08,1)';cv.style.transform='rotate('+cur+'deg)';
-setTimeout(()=>done(k),5100)}
+const s=360/act.length,th=k*s+s*(.14+Math.random()*.72),T=(ms,f)=>setTimeout(f,ms),go=(v,ms,x)=>{cur=v;cv.style.transition='transform '+ms+'ms '+x;cv.style.transform='rotate('+v+'deg)'},base=Math.ceil(cur/360)*360+360-th,fl=()=>{const f=$('#fw');f.classList.remove('fl');void f.offsetWidth;f.classList.add('fl')},E='cubic-bezier(.12,.62,.08,1)';
+let st;do{st=Math.floor(Math.random()*4)}while(st===lastSt);lastSt=st;
+$('#res').textContent='กำลังหมุน... ('+['หมุนปกติ','ถอยหลังก่อนพุ่ง','ค่อยๆ คืบลุ้น','พลิกเหรียญ'][st]+')';
+if(st===0){go(base+360*(5+Math.floor(Math.random()*3)),5000,E);T(5100,()=>done(k))}
+else if(st===1){go(cur-45,900,'ease-out');T(950,()=>go(base+360*6,4600,E));T(5600,()=>done(k))}
+else if(st===2){const A=Math.ceil(cur/360)*360+360-((k+1)*s+s*.12)+360*4,B=A+s*(1.12-(th/s-k));go(A,4000,E);T(4900,()=>go(B,2200,'ease-in-out'));T(7200,()=>done(k))}
+else{go(base+360*5,5200,E);T(700,fl);T(2700,fl);T(5300,()=>done(k))}}
 function done(k){const ai=act[k],n=all[ai];$('#res').textContent='🎉 ผลลัพธ์: '+n;hist.unshift(n);hist=hist.slice(0,8);ST[n]=(ST[n]||0)+1;rh();rs();save();buzz(40);fx(0);fade();
 if(S.mode){setTimeout(()=>{removed.add(ai);if(all.length-removed.size<2){removed.clear();$('#res').textContent='ครบทุกช่องแล้ว นำกลับมาใหม่ทั้งหมด'}rebuild();free()},1500)}else free()}
 $('#spin').onclick=spin;
