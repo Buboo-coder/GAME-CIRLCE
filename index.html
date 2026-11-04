@@ -70,6 +70,8 @@ input[type=checkbox]:checked::after{left:21px}
 @keyframes up{from{transform:translateY(0);opacity:.9}to{transform:translateY(-330px);opacity:0}}
 @keyframes rip{from{transform:translate(-50%,-50%) scale(.9);opacity:.8}to{transform:translate(-50%,-50%) scale(2);opacity:0}}
 @media(prefers-reduced-motion:reduce){.glow,.glow::after,.bub,.rp{animation:none}}
+.ptr.wg{animation:wg .45s;transform-origin:50% 0}
+@keyframes wg{0%,100%{transform:translateX(-50%) rotate(0)}25%{transform:translateX(-50%) rotate(-14deg)}75%{transform:translateX(-50%) rotate(14deg)}}
 </style>
 </head>
 <body>
@@ -111,7 +113,7 @@ const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'
 const COL=[[255,0,0],[255,128,0],[255,255,0],[128,255,0],[0,255,0],[0,255,128],[0,255,255],[0,128,255],[0,0,255],[128,0,255],[255,0,255],[255,0,128]];
 const PAL=['#0284c7','#06b6d4','#0f766e','#3b82f6','#fb7185','#14b8a6','#1d4ed8','#f59e0b'];
 const TPL={'Alcohol':['🍺 เบียร์','🍷 ไวน์','🥃 วิสกี้','🍸 ค็อกเทล','🍹 มาร์การิต้า','💧 น้ำเปล่า'],'กินอะไรดี':['🍜 ก๋วยเตี๋ยว','🍛 ข้าวแกง','🍕 พิซซ่า','🍣 ซูชิ','🍗 ไก่ทอด','🥗 สลัด'],'ใครจ่าย':['เพื่อนคนที่ 1','เพื่อนคนที่ 2','เพื่อนคนที่ 3','เพื่อนคนที่ 4'],'ทำโทษ':['🕺 เต้น 10 วิ','🎤 ร้องเพลง','🥤 เลี้ยงน้ำ','🤪 ทำหน้าตลก','💪 วิดพื้น 5 ที','😇 รอดตัว']};
-let all=TPL['Alcohol'].slice(),S={snd:1,vib:1,mode:0,a2:0,stat:1,resb:1},ST={},hist=[],removed=new Set(),act=[],cur=0,busy=0,ci=9,src='tap',L1=null,L2=null,autoT,ht,hx,hy,taps=0,lastTap=0;
+let all=TPL['Alcohol'].slice(),S={snd:1,vib:1,mode:0,a2:0,stat:1,resb:1},ST={},hist=[],removed=new Set(),act=[],cur=0,busy=0,ci=9,src='tap',L1=null,L2=null,autoT,ht,hx,hy,tp=null,taps=0,lastTap=0;
 try{const d=JSON.parse(localStorage.getItem('wv1'));if(d){if(d.all&&d.all.length>1)all=d.all;Object.assign(S,d.S);hist=d.hist||[];ST=d.ST||{}}}catch(e){}
 const save=()=>{try{localStorage.setItem('wv1',JSON.stringify({all,S,hist,ST}))}catch(e){}};
 const buzz=p=>{if(S.vib&&navigator.vibrate)navigator.vibrate(p)};
@@ -124,7 +126,7 @@ ctx.save();ctx.translate(c,c);ctx.rotate(-Math.PI/2+(k+.5)*s);ctx.fillStyle='#ff
 function rebuild(){act=all.map((_,i)=>i).filter(i=>!removed.has(i));cur=0;cv.style.transition='none';cv.style.transform='rotate(0deg)';draw()}
 function glow(){{const st=document.documentElement.style,c=COL[ci];st.setProperty('--gr',c[0]);st.setProperty('--gg',c[1]);st.setProperty('--gb',c[2])}document.querySelectorAll('#strip i').forEach((e,k)=>e.classList.toggle('cur',k===ci))}
 function mark(ai){const k=act.indexOf(ai);if(k<0)return;const a=((k+.5)*360/act.length+cur)*Math.PI/180,m=document.createElement('i');m.className='lk';m.textContent='🔒';m.style.left=50+40*Math.sin(a)+'%';m.style.top=50-40*Math.cos(a)+'%';box.appendChild(m);setTimeout(()=>m.remove(),2000)}
-function lockHold(ai){if(src==='tap'){if(L1&&L1.by==='panel')return;if(L1&&L1.slot===ai){L1=null;return}L1={by:'hold',slot:ai}}else L2=ai;mark(ai)}
+function lockHold(ai){L2=ai;buzz([30,60,30]);const p=$('.ptr');p.classList.remove('wg');void p.offsetWidth;p.classList.add('wg')}
 function auto(on){clearInterval(autoT);if(on)autoT=setInterval(()=>{ci=(ci+1)%12;src='auto';glow()},3000)}
 function show(v){['main','edit','set'].forEach(x=>$('#v-'+x).hidden=x!==v);if(v==='edit')re();scrollTo(0,0)}
 const free=()=>{busy=0;$('#spin').disabled=false};
@@ -149,7 +151,7 @@ $('#hub').onclick=()=>{if(S.a2)return;ci=(ci+1)%12;glow();buzz(rgb()?[15,60,15]:
 box.addEventListener('contextmenu',e=>e.preventDefault());
 box.addEventListener('pointerdown',e=>{if(busy||!S.a2||!rgb())return;const r=box.getBoundingClientRect(),R=r.width/2,dx=e.clientX-r.left-R,dy=e.clientY-r.top-R,d=Math.hypot(dx,dy);if(d<R*.2||d>R)return;
 hx=e.clientX;hy=e.clientY;const ph=(Math.atan2(dx,-dy)*180/Math.PI+360)%360,th=((ph-cur)%360+360)%360,k=Math.floor(th/(360/act.length));
-clearTimeout(ht);ht=setTimeout(()=>{ht=0;lockHold(act[k])},2000)});
+const t=Date.now();tp=(tp&&tp.k===k&&t-tp.t<600)?{k,n:tp.n+1,t}:{k,n:1,t};if(tp.n>=3){tp=null;lockHold(act[k])}});
 box.addEventListener('pointermove',e=>{if(ht&&Math.hypot(e.clientX-hx,e.clientY-hy)>14){clearTimeout(ht);ht=0}});
 ['pointerup','pointercancel','pointerleave'].forEach(t=>box.addEventListener(t,()=>{clearTimeout(ht);ht=0}));
 
