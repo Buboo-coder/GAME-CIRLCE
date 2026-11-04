@@ -72,15 +72,29 @@ input[type=checkbox]:checked::after{left:21px}
 @media(prefers-reduced-motion:reduce){.glow,.glow::after,.bub,.rp{animation:none}}
 .ptr.wg{animation:wg .45s;transform-origin:50% 0}
 @keyframes wg{0%,100%{transform:translateX(-50%) rotate(0)}25%{transform:translateX(-50%) rotate(-14deg)}75%{transform:translateX(-50%) rotate(14deg)}}
+.sea{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.view{position:relative;z-index:1}
+.fs{position:absolute;left:0;font-size:26px;opacity:.75;animation:sw1 24s linear infinite}
+.fs.r{animation-name:sw2}
+.jf{position:absolute;font-size:26px;opacity:.7;animation:jf 6s ease-in-out infinite}
+.wv{position:absolute;left:0;bottom:0;width:200%;height:60px;animation:wv 9s linear infinite}
+.shine{position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:2;background:conic-gradient(transparent,rgba(255,255,255,.35) 8%,transparent 18%,transparent 50%,rgba(255,255,255,.2) 58%,transparent 68%);animation:sw 7s linear infinite}
+.box.spinning .shine{animation-duration:1.6s}
+@keyframes sw1{from{transform:translateX(-12vw) scaleX(-1)}to{transform:translateX(112vw) scaleX(-1)}}
+@keyframes sw2{from{transform:translateX(112vw)}to{transform:translateX(-12vw)}}
+@keyframes jf{0%,100%{transform:translateY(0)}50%{transform:translateY(-22px)}}
+@keyframes wv{to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.fs,.jf,.wv,.shine{animation:none}}
 </style>
 </head>
 <body>
+<div class="sea" aria-hidden="true"><span class="fs" style="top:10%;animation-duration:22s">🐠</span><span class="fs r" style="top:33%;animation-duration:30s;animation-delay:-9s">🐟</span><span class="fs" style="top:64%;animation-duration:27s;animation-delay:-16s">🐡</span><span class="fs r" style="top:82%;animation-duration:34s;animation-delay:-4s">🐢</span><span class="jf" style="left:7%;top:46%">🪼</span><span class="jf" style="left:86%;top:20%;animation-delay:-3s">🪼</span><svg class="wv" viewBox="0 0 2400 80" preserveAspectRatio="none"><path d="M0 40Q150 0 300 40T600 40T900 40T1200 40T1500 40T1800 40T2100 40T2400 40V80H0Z" fill="rgba(255,255,255,.5)"/></svg></div>
 <main id="v-main" class="view">
 <div class="bar"><button class="ib" onclick="show('edit')" aria-label="แก้ไขวงล้อ">✏️</button><button class="ib" onclick="show('set')" aria-label="ตั้งค่า">⚙️</button></div>
 <h1 id="title">🌊 วงล้อสุ่มน่ารัก</h1>
 <p class="sub">หมุนวงล้อและรอผลลัพธ์ที่น่าตื่นเต้น!</p>
 <div class="chips" id="modes"><button class="chip" data-m="0">สุ่มปกติ</button><button class="chip" data-m="1">ตัดออกเมื่อถูกสุ่ม</button></div>
-<div class="box" id="box"><div class="glow"></div><div class="fx" id="fx"></div><canvas id="wheel" width="640" height="640"></canvas><div class="ptr"></div><button class="hub" id="hub" aria-label="เปลี่ยนสีไฟ"><span class="dot" id="dot"></span></button></div>
+<div class="box" id="box"><div class="glow"></div><div class="fx" id="fx"></div><canvas id="wheel" width="640" height="640"></canvas><div class="shine"></div><div class="ptr"></div><button class="hub" id="hub" aria-label="เปลี่ยนสีไฟ"><span class="dot" id="dot"></span></button></div>
 <div style="text-align:center"><button class="spin" id="spin">🎲 หมุนวงล้อ!</button></div>
 <div class="card" id="res">กดปุ่มหมุนเพื่อเริ่มเกม 🎉</div>
 
@@ -137,7 +151,7 @@ function fx(on){const f=$('#fx');f.innerHTML='';box.classList.toggle('spinning',
 
 function spin(){if(busy||!act.length)return;busy=1;$('#spin').disabled=true;$('#res').textContent='กำลังหมุน...';fx(1);if(S.snd){snd.currentTime=0;snd.volume=.8;snd.play().catch(()=>{})}
 let k=Math.floor(Math.random()*act.length);
-if(rgb()){const f=src==='tap'?(L1?L1.slot:null):L2;if(f!=null){const j=act.indexOf(f);if(j>=0)k=j;if(src==='tap')L1=null;else L2=null}}
+if(src==='auto'||rgb()){const f=src==='tap'?(L1?L1.slot:null):L2;if(f!=null){const j=act.indexOf(f);if(j>=0)k=j;if(src==='tap')L1=null;else L2=null}}
 const s=360/act.length,th=k*s+s*(.14+Math.random()*.72);
 cur=Math.ceil(cur/360)*360+360*(5+Math.floor(Math.random()*3))+360-th;
 cv.style.transition='transform 5s cubic-bezier(.12,.62,.08,1)';cv.style.transform='rotate('+cur+'deg)';
@@ -151,7 +165,7 @@ $('#hub').onclick=()=>{if(S.a2)return;ci=(ci+1)%12;glow();buzz(rgb()?[15,60,15]:
 box.addEventListener('contextmenu',e=>e.preventDefault());
 box.addEventListener('pointerdown',e=>{if(busy||!S.a2||!rgb())return;const r=box.getBoundingClientRect(),R=r.width/2,dx=e.clientX-r.left-R,dy=e.clientY-r.top-R,d=Math.hypot(dx,dy);if(d<R*.2||d>R)return;
 hx=e.clientX;hy=e.clientY;const ph=(Math.atan2(dx,-dy)*180/Math.PI+360)%360,th=((ph-cur)%360+360)%360,k=Math.floor(th/(360/act.length));
-const t=Date.now();tp=(tp&&tp.k===k&&t-tp.t<600)?{k,n:tp.n+1,t}:{k,n:1,t};if(tp.n>=3){tp=null;lockHold(act[k])}});
+auto(1);const t=Date.now();tp=(tp&&tp.k===k&&t-tp.t<600)?{k,n:tp.n+1,t}:{k,n:1,t};if(tp.n>=3){tp=null;lockHold(act[k])}});
 box.addEventListener('pointermove',e=>{if(ht&&Math.hypot(e.clientX-hx,e.clientY-hy)>14){clearTimeout(ht);ht=0}});
 ['pointerup','pointercancel','pointerleave'].forEach(t=>box.addEventListener(t,()=>{clearTimeout(ht);ht=0}));
 
